@@ -6,6 +6,7 @@ import { generateBuildings } from './rules.js';
 import { makeRoads, buildStreet } from './street.js';
 import { placeVending, glowMats } from './vending.js';
 import { sampleSky, lightDir, nightify, buildFarLights, NU } from './night.js';
+import { detectSpec, sharpenShadows } from './spec.js';
 
 const hud = document.getElementById('hud');
 const t0 = performance.now();
@@ -38,11 +39,17 @@ scene.add(sky);
 // 빛: 해(밤에는 달) 하나와 하늘빛. 방향과 색은 시각에 따라 applyTime()이 바꾼다.
 const sunDir = new THREE.Vector3(0, 0.88, 0.47).normalize();
 const sun = new THREE.DirectionalLight(P.sun, 3.0);
-// 그림자 경계가 딱 떨어지게 해상도를 높게 잡는다(?shadow=4096 으로 낮출 수 있다)
-const SH_SIZE = Math.min(+new URLSearchParams(location.search).get('shadow') || 8192, renderer.capabilities.maxTextureSize), SH_HALF = 120;
+// 섀도 맵 해상도는 시작할 때 감지한 사양 등급으로 정한다(높음 8192 / 중간 4096 / 낮음 2048). spec.js 참고.
+const spec = detectSpec(renderer);
+// 경계 선명 처리는 중간 등급(4096)에만 쓴다. 높음은 해상도로 충분하고, 낮음(2048)은 끊으면 계단이 더 드러나서 부드럽게 둔다.
+const sharpQ = new URLSearchParams(location.search).get('sharp');
+const sharp = (sharpQ === '1' || (sharpQ !== '0' && spec.tier === 'mid')) && sharpenShadows();
+const SH_SIZE = spec.shadow, SH_HALF = 120;
 sun.castShadow = true; sun.shadow.mapSize.set(SH_SIZE, SH_SIZE);
 Object.assign(sun.shadow.camera, { left: -SH_HALF, right: SH_HALF, top: SH_HALF, bottom: -SH_HALF, near: 1, far: 1200 });
-sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.1;
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = Math.max(0.1, ((2 * SH_HALF) / SH_SIZE) * 1.5); // 텍셀이 커지면 여유도 키운다
+// 선명 처리를 할 때는 조금 넓게 걸러야 끊은 선이 매끈하다(?radius= 로 확인용 지정)
+sun.shadow.radius = +new URLSearchParams(location.search).get('radius') || (sharp ? 1.5 : 1);
 scene.add(sun, sun.target);
 const hemi = new THREE.HemisphereLight(P.hemiSky, P.hemiGround, 1.45); scene.add(hemi);
 
@@ -217,7 +224,7 @@ function frame(now) {
     if (document.activeElement !== ckTime) ckTime.value = hhmm(cm);
     if (document.activeElement !== ckRange) ckRange.value = Math.floor(cm);
     ckNow.disabled = Math.abs(offsetMin) < 0.01;
-    hud.innerHTML = `<b>노게 500m · 건물 ${bs.length}채 · ${hhmm(cm)}${Math.abs(offsetMin) < 0.01 ? '' : ' (직접 설정)'}</b>\n${L}\n${fps.toFixed(0)} fps · 삼각형 ${(renderer.info.render.triangles / 1000).toFixed(0)}k · 호출 ${renderer.info.render.calls}\n위치 ${player.x.toFixed(0)}, ${player.y.toFixed(0)} · ${player.fly ? '비행 ' + player.h.toFixed(0) + 'm' : run ? '달리기 5.0m/s' : '걷기 1.5m/s'}`;
+    hud.innerHTML = `<b>노게 500m · 건물 ${bs.length}채 · ${hhmm(cm)}${Math.abs(offsetMin) < 0.01 ? '' : ' (직접 설정)'}</b>\n${L}\n${fps.toFixed(0)} fps · 삼각형 ${(renderer.info.render.triangles / 1000).toFixed(0)}k · 호출 ${renderer.info.render.calls}\n사양 ${spec.tierName}(${spec.why}) · 그림자 ${SH_SIZE}\n위치 ${player.x.toFixed(0)}, ${player.y.toFixed(0)} · ${player.fly ? '비행 ' + player.h.toFixed(0) + 'm' : run ? '달리기 5.0m/s' : '걷기 1.5m/s'}`;
   }
   requestAnimationFrame(frame);
 }
@@ -225,5 +232,6 @@ requestAnimationFrame(frame);
 
 // 확인용 창구
 window.__go = (x, y, yawDeg = 0, pitchDeg = 0, h = 1.6) => { Object.assign(player, { x, y, h, yaw: (-yawDeg * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180, fly: true }); };
-window.__app = { player, startPos, setTime, curMin, collide, keys, layers, applyLayers, stats, street: street.counts, vend: vend.spots, bs, G, buildMs, renderer, tris: { far: farB.tris, raw: out.raw.tris, form: out.form.tris, win: out.win.tris, roof: out.roof.tris, sign: out.sign.tris, street: streetB.tris } };
+console.log('사양 감지', spec, '그림자 경계 선명 처리', sharp);
+window.__app = { player, startPos, setTime, curMin, spec, sharp, collide, keys, layers, applyLayers, stats, street: street.counts, vend: vend.spots, bs, G, buildMs, renderer, tris: { far: farB.tris, raw: out.raw.tris, form: out.form.tris, win: out.win.tris, roof: out.roof.tris, sign: out.sign.tris, street: streetB.tris } };
 console.log('build', buildMs.toFixed(0), 'ms', stats, street.counts, window.__app.tris);

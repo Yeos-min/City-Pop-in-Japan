@@ -21,6 +21,9 @@
   #clock button { font: inherit; color: #10203c; background: #ffe08a; border: 0; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
   #clock button:disabled { opacity: .4; cursor: default; }
   #hud { z-index: 10; }
+  #to-models { position: fixed; right: 12px; top: 12px; z-index: 10; color: #10203c; background: #ffe08a; font-size: 13px; text-decoration: none; padding: 7px 12px; border-radius: 6px; }
+  #to-models[hidden] { display: none; }
+  #to-models:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   kbd { background: rgba(255, 255, 255, .16); border-radius: 3px; padding: 1px 6px; font-family: inherit; }
 </style>
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }</script>
@@ -28,6 +31,7 @@
 <body>
 <div id="hud">불러오는 중…</div>
 <div id="cross"></div>
+<a id="to-models" href="models.html" hidden>자판기·캔 모델 보기 <kbd>M</kbd></a>
 <div id="clock"><label for="ck-time">시각</label><input id="ck-time" type="time" step="60"><input id="ck-range" type="range" min="0" max="1439" step="1" aria-label="시각 슬라이더"><button id="ck-now" type="button">지금 시각으로</button></div>
 <div id="start"><div>
   <h1>확인용 프로토타입 · 요코하마 노게 500m</h1>
@@ -39,5 +43,13 @@
   <small>숫자 키·F·V·[ ]는 확인용 도구다. 기획에 있는 기능이 아니다.</small>
 </div></div>
 <script type="module" src="src/main.js"></script>
+<script>
+  // 자판기·캔 뷰어(models.html)로 넘어가는 버튼. 뷰어 파일이 같이 있을 때만 보인다(깃허브에는 뷰어를 올리지 않는다).
+  fetch('models.html', { method: 'HEAD' }).then(r => {
+    if (!r.ok) return;
+    document.getElementById('to-models').hidden = false;
+    addEventListener('keydown', e => { if (e.code === 'KeyM' && e.target.tagName !== 'INPUT') location.href = 'models.html'; });
+  }).catch(() => {});
+</script>
 </body>
 </html>
