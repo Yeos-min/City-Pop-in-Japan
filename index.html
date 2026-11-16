@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시티팝 도시 — 확인용 프로토타입 (노게)</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a48bd; font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif; }
+  canvas { display: block; }
+  #hud { position: fixed; left: 12px; top: 12px; color: #fff; font-size: 12px; line-height: 1.55; background: rgba(16, 28, 60, .62); padding: 9px 12px; border-radius: 6px; user-select: none; pointer-events: none; white-space: pre; font-variant-numeric: tabular-nums; }
+  #hud b { color: #ffe08a; font-weight: 600; }
+  #hud .off { opacity: .45; }
+  #cross { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255, 255, 255, .8); box-shadow: 0 0 0 1px rgba(20, 30, 60, .5); pointer-events: none; }
+  #start { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10, 30, 80, .45); color: #fff; cursor: pointer; }
+  #start div { text-align: center; line-height: 1.8; font-size: 15px; background: rgba(16, 28, 60, .78); padding: 22px 30px; border-radius: 10px; }
+  #start h1 { font-size: 19px; margin: 0 0 6px; }
+  #start small { opacity: .75; font-size: 12px; }
+  #clock { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 10px; color: #fff; font-size: 13px; background: rgba(16, 28, 60, .78); padding: 8px 14px; border-radius: 8px; white-space: nowrap; }
+  #clock input[type=time] { font: inherit; color: #fff; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .25); border-radius: 4px; padding: 3px 6px; color-scheme: dark; }
+  #clock input[type=range] { width: min(46vw, 420px); accent-color: #ffe08a; }
+  #clock button { font: inherit; color: #10203c; background: #ffe08a; border: 0; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+  #clock button:disabled { opacity: .4; cursor: default; }
+  #hud { z-index: 10; }
+  kbd { background: rgba(255, 255, 255, .16); border-radius: 3px; padding: 1px 6px; font-family: inherit; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }</script>
+</head>
+<body>
+<div id="hud">불러오는 중…</div>
+<div id="cross"></div>
+<div id="clock"><label for="ck-time">시각</label><input id="ck-time" type="time" step="60"><input id="ck-range" type="range" min="0" max="1439" step="1" aria-label="시각 슬라이더"><button id="ck-now" type="button">지금 시각으로</button></div>
+<div id="start"><div>
+  <h1>확인용 프로토타입 · 요코하마 노게 500m</h1>
+  화면을 클릭하면 시작<br>
+  <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 걷기 · <kbd>Shift</kbd> 달리기 · 마우스 시점 · <kbd>Esc</kbd> 멈춤<br>
+  <kbd>1</kbd>~<kbd>6</kbd> 규칙 켜고 끄기 · <kbd>0</kbd> 전부 끄기/켜기<br>
+  시각: <kbd>Esc</kbd>로 멈춘 뒤 아래에서 직접 입력하거나 슬라이더 · 걷는 중엔 <kbd>[</kbd> <kbd>]</kbd> 10분씩<br>
+  <kbd>F</kbd> 자유 비행(<kbd>Q</kbd>/<kbd>E</kbd> 위아래) · <kbd>V</kbd> 다음 자판기 앞으로 · <kbd>R</kbd> 처음 위치<br>
+  <small>숫자 키·F·V·[ ]는 확인용 도구다. 기획에 있는 기능이 아니다.</small>
+</div></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
